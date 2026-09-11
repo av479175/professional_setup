@@ -2,6 +2,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+//IT IS MIDDLEWARE FILE
+
 // Create the Express application.
 const app = express();
 
@@ -16,13 +18,16 @@ app.use(cors({
 app.use(express.json({ limit: "16kb" }));
 
 // Parse data submitted through HTML forms.
-app.use(express.urlencoded({extended : true ,limit : "16kb"}));
+//configuration for url 20%=? type encodeing
+app.use(express.urlencoded({extended : true ,limit : "16kb"}));//->extended for extended object
 
 // Serve files such as images, CSS, and JavaScript from the public folder.
+//koi foldere assests images wagera rakhne ke liye
 app.use(express.static("public"));
 
 // Parse cookies so they can be accessed through req.cookies.
-app.use(cookieParser());
+app.use(cookieParser());//->cookies crud operation
+//server use coookies
 
 // Export the configured app so index.js can start the server.
 export { app }; 

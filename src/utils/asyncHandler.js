@@ -1,4 +1,3 @@
-
 const asyncHandler = (requestHandler) => {
     // Receive a controller function and create an error-handling wrapper for it.
     return (req, res, next) => {
@@ -10,7 +9,6 @@ const asyncHandler = (requestHandler) => {
     };
 };
 export { asyncHandler };
-
 // const asyncHandler = (fn) => async (req, res, next) => {
 //     try {
 //         await fn(req, res, next)
@@ -29,3 +27,9 @@ export { asyncHandler };
 
 // const asyncHandler = () => async () => {}
 
+// function asyncHandler(fn) {
+//   return function() {
+//     // your logic goes here
+// Promise.resolve(fn(req, res, next)).catch(next);
+//   };
+// }
