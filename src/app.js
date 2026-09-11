@@ -30,4 +30,11 @@ app.use(cookieParser());//->cookies crud operation
 //server use coookies
 
 // Export the configured app so index.js can start the server.
+
+//ROUTES
+import userRouter from './routes/user.routes.js';
+
+//routes declaration
+app.use("/api/v1/users",userRouter)
+
 export { app }; 
