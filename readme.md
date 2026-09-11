@@ -1,207 +1,93 @@
 # Chai Aur Backend
 
-A Node.js and Express backend project for a YouTube-style application. The project currently contains the application setup, MongoDB connection, user and video models, and reusable API utilities. Controllers, routes, and custom middleware are prepared as folders but are not implemented yet.
+Node.js and Express backend for a YouTube-style application.
 
-## Technologies
-
-- Node.js
-- Express
-- MongoDB with Mongoose
-- ES modules
-- JWT authentication support
-- bcrypt password hashing
-
-## Requirements
-
-- Node.js and npm
-- A running MongoDB instance or a MongoDB Atlas connection string
-
-## Installation
-
-Clone or open the project, then install the dependencies:
+## Setup
 
 ```bash
 npm install
-```
-
-Start the development server with Nodemon:
-
-```bash
 npm run dev
 ```
 
-The development script runs `src/index.js` and restarts the server when source files change.
+The development server starts from `src/index.js` and uses Nodemon to restart after file changes.
 
-## Environment Variables
-
-Create a `.env` file in the project root:
+Create a local `.env` file:
 
 ```env
 PORT=8000
 CORS_ORIGIN=http://localhost:5173
 MONGODB_URI=mongodb://127.0.0.1:27017
-
-ACCESS_TOKEN_SECERT=replace-with-an-access-token-secret
+ACCESS_TOKEN_SECERT=your-access-token-secret
 ACCESS_TOKEN_EXPIRY=1d
-REFRESH_TOKEN_SECERT=replace-with-a-refresh-token-secret
+REFRESH_TOKEN_SECERT=your-refresh-token-secret
 REFRESH_TOKEN_EXPIRY=10d
 ```
 
-`DB_NAME` is currently defined in `src/constants.js` as `youtube`, so the MongoDB database URL becomes:
+The database name is `youtube`, so the application connects to `MONGODB_URI/youtube`.
 
-```text
-MONGODB_URI/youtube
-```
+Keep `.env` private. It is excluded through `.gitignore`.
 
-Do not commit `.env` or real secrets to Git.
+## Packages
 
-## Dependencies
+### Runtime
 
-### Runtime dependencies
-
-These packages are required when the application runs:
-
-| Package | Purpose |
+| Package | Use |
 | --- | --- |
-| `express` | Creates the HTTP server, routes, and middleware pipeline. |
-| `mongoose` | Connects to MongoDB and defines schemas and models. |
-| `dotenv` | Loads values from `.env` into `process.env`. |
-| `cors` | Allows configured frontend origins to call the API. |
-| `cookie-parser` | Reads cookies from incoming requests. |
-| `bcrypt` | Hashes passwords and compares passwords during login. |
-| `jsonwebtoken` | Creates and verifies JWT access and refresh tokens. |
-| `mongoose-paginate-v2` | Provides Mongoose pagination support. |
+| `express` | HTTP server, routes, and middleware |
+| `mongoose` | MongoDB connection, schemas, and models |
+| `dotenv` | Loads environment variables from `.env` |
+| `cors` | Allows frontend-to-backend requests |
+| `cookie-parser` | Reads cookies from requests |
+| `bcrypt` | Hashes and compares passwords |
+| `jsonwebtoken` | Creates JWT access and refresh tokens |
+| `mongoose-paginate-v2` | Mongoose pagination support |
 
-### Development dependencies
+### Development
 
-| Package | Purpose |
+| Package | Use |
 | --- | --- |
-| `nodemon` | Restarts the development server when files change. |
-| `prettier` | Formats JavaScript and project files consistently. |
+| `nodemon` | Restarts the server during development |
+| `prettier` | Formats project files |
 
-Install an individual package only when needed:
-
-```bash
-npm install package-name
-npm install --save-dev package-name
-```
-
-Normally, `npm install` is enough because all packages are already listed in `package.json`.
-
-## Project Structure
-
-```text
-professional_setup/
-|-- public/                 Static files served by Express
-|-- src/
-|   |-- app.js              Express app and global middleware
-|   |-- index.js            Application entry point
-|   |-- constants.js        Shared constants such as the database name
-|   |-- db/
-|   |   `-- index.js        MongoDB connection function
-|   |-- controllers/        Request and response business logic
-|   |-- middlewares/        Authentication and error middleware
-|   |-- models/
-|   |   |-- user.model.js   User schema and authentication methods
-|   |   `-- video.model.js  Video schema and pagination plugin
-|   |-- routes/              API route definitions
-|   `-- utils/
-|       |-- apiError.js     Custom API error class
-|       |-- asyncHandler.js Async controller error wrapper
-|       `-- respone.js      Standard API response class
-|-- .env                    Local environment variables
-|-- package.json            Dependencies and npm scripts
-`-- package-lock.json       Exact dependency versions
-```
+All packages are already listed in `package.json`; `npm install` installs them.
 
 ## Application Flow
 
-The application starts in the following order:
-
 ```text
 npm run dev
-	|
-	v
+    |
+    v
 src/index.js
-	|
-	|-- dotenv/config loads .env
-	|-- imports the Express app
-	|-- calls connectDB()
-	|       |
-	|       `-- Mongoose connects to MONGODB_URI/youtube
-	|
-	`-- after MongoDB connects, app.listen(PORT) starts the server
-```
-
-When a request reaches the server:
-
-```text
+    |
+    |-- Loads .env using dotenv
+    |-- Imports the Express app
+    |-- Connects to MongoDB using Mongoose
+    |-- Starts Express only after the database connects
+    |
+    v
 Client request
-	|
-	v
-CORS middleware
-	|
-	v
-JSON and URL-encoded body parsers
-	|
-	v
-Static file middleware and cookie parser
-	|
-	v
-Routes
-	|
-	v
-Controllers
-	|
-	v
-Mongoose models and MongoDB
-	|
-	v
-API response
+    |
+    |-- CORS checks the frontend origin
+    |-- Express parses JSON and form data
+    |-- Cookie parser reads request cookies
+    |-- Routes call controllers
+    |-- Controllers use Mongoose models
+    |
+    v
+API response sent as JSON
 ```
 
-## Main Modules
+## Main Files
 
-### `src/app.js`
+- `src/index.js`: Loads configuration, connects to MongoDB, and starts the server.
+- `src/app.js`: Configures Express middleware.
+- `src/db/index.js`: Creates the MongoDB connection.
+- `src/models/user.model.js`: User schema, password hashing, and JWT methods.
+- `src/models/video.model.js`: Video schema and user relationship.
+- `src/utils/asyncHandler.js`: Forwards asynchronous errors to Express.
+- `src/utils/apiError.js`: Standard custom API errors.
+- `src/utils/respone.js`: Standard API response format.
 
-Creates the Express application and registers CORS, JSON parsing, form parsing, static-file serving, and cookie parsing. It exports `app`; it does not start the server itself.
+## Current Status
 
-### `src/index.js`
-
-Loads environment variables, connects to MongoDB, and starts Express with `app.listen()` only after the database connection succeeds.
-
-### `src/db/index.js`
-
-Uses Mongoose to connect to `${MONGODB_URI}/${DB_NAME}`. If the connection fails, the process exits with an error.
-
-### `src/models/user.model.js`
-
-Defines user fields such as username, email, password, avatar, watch history, and refresh token. It also contains password hashing, password comparison, and JWT token-generation methods.
-
-### `src/models/video.model.js`
-
-Defines video metadata such as title, description, video file, thumbnail, owner, duration, views, and publish status. Videos reference users through MongoDB ObjectIds.
-
-### `src/utils/asyncHandler.js`
-
-Wraps an asynchronous controller and forwards rejected promises to Express error middleware, avoiding repeated `try...catch` blocks.
-
-### `src/utils/apiError.js`
-
-Provides a custom error object with `statusCode`, `message`, `error`, and `success` properties.
-
-### `src/utils/respone.js`
-
-Provides a consistent response shape containing `success`, `message`, `data`, and `statusCode`.
-
-## Important Dependency Check
-
-`package.json` currently installs `mongoose-paginate-v2`, but `src/models/video.model.js` imports `mongooseAggregatePaginate`. These are different package names. The video model will need to use the package that is actually installed, or the required aggregate-pagination package must be added before that model can run successfully.
-
-## Current Project Status
-
-- Express application setup is present.
-- MongoDB connection setup is present.
-- User and video models are present.
-- Controllers, routes, and middleware folders are currently empty.
-- Authentication and API endpoints still need to be connected through routes and controllers.
+Application setup, database connection, models, and utilities are ready. Routes, controllers, and authentication endpoints still need to be added.
