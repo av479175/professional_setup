@@ -1,9 +1,8 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { apiError } from "../utils/apiError.js";
-import { User } from "../models/user.model.js";
+import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiRespone.js";
-import { response } from "express";
 
 const registerUser = asyncHandler(async (req, res) => {
     //steps - get user detail from user
@@ -27,7 +26,7 @@ const registerUser = asyncHandler(async (req, res) => {
     ) {
         throw new apiError(400, "All fields are required")
     }
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{
             username
         }, {
@@ -38,21 +37,23 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new apiError(409, "USER already exist with this email");
     }
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
     if (!avatarLocalPath) {
         throw new apiError(400, "AVATAR TOH LAGEGA BAHI");
     }
     //abhi baad m delete karunga
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-    const coverImage = await uploadOnCloudinary(coverImage);
+    const coverImage = coverImageLocalPath
+        ? await uploadOnCloudinary(coverImageLocalPath)
+        : null;
     if (!avatar) {
         throw new apiError(400, "AVATAR TOH LAGEGA BAHI dhekle");
     }
 
     const user = await User.create({
-        fullName,
+        fullname: fullName,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
         email,
@@ -62,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const createUser = await User.findById(user._id).select(
         "-password -refershToken"
     )
-    if(createUser){
+    if(!createUser){
         throw new apiError(500 , "something went wrong while registering");
     }
     return res.status(201).json(

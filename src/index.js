@@ -1,10 +1,9 @@
 import 'dotenv/config';
 // This automatically runs .config() immediately
-import mongoose from "mongoose";
+import connectDB from "../src/db/index.js";
 import { app } from './app.js';
 
-import { DB_NAME } from "./constants.js";
-import connectDB from "../src/db/index.js";
+
 
 //connectDB returns a promise
 connectDB().then(() => {
