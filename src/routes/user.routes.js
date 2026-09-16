@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
 
+import { registerUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 
 
-const router = Router()
+const router = Router();
 router.route("/register").post(
     upload.fields([
         {
@@ -23,7 +23,7 @@ router.route("/register").post(
 
 router.route("/").get(
     (req, res) => res.status(200).json({
-        message: "YOUR FRINTEND IS CONNECTEDD TO BACKEND"
+        message: "YOUR FRONTEND IS CONNECTEDD TO BACKEND"
     })
 );
 
