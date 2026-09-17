@@ -136,25 +136,51 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refershToken", refershToken, options)
-    .json(
-        new ApiResponse(
-            200,
-            {
-                user: loggedInUser, accessToken,
-                refershToken
-            },
-            "user logged in successfully"
-        )
-    );
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refershToken", refershToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedInUser, accessToken,
+                    refershToken
+                },
+                "user logged in successfully"
+            )
+        );
 }
 );
+const logout = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(
 
+        req.user._id,
+        {
+            $set: {
+                refershToken: undefined
+            }
+        },
+        {
+            new: true //jo apko response milega usme new updated value milegi
+        }
+    );
+
+    const options = {
+        httpOnly: true,
+        secure: true //only modify by server
+    };
+    return res.
+        status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refershToken", options)
+        .json(
+            new ApiResponse(200, {}, "User Logged off")
+    );
+})
 
 
 export {
     registerUser,
-    loginUser
+    loginUser,
+    logout
 }
