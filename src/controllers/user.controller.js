@@ -5,20 +5,20 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiRespone.js";
 
 //lets make a method for this
-const generateAccessTokenAndRefershTokens = async (userID) =>{
+const generateAccessTokenAndRefershTokens = async (userID) => {
     try {
-        const user = await User.findOne({userID});
-        const accessToken  = user.generateAccessToken();
+        const user = await User.findOne({ userID });
+        const accessToken = user.generateAccessToken();
         const refershToken = user.generateRefershToken();
 
         user.refershToken = refershToken;
-        await user.save({validateBeforeSave : false});
+        await user.save({ validateBeforeSave: false });
         //har baar save karane par mongoose k model kickin hojate hai -> jaise pass required field hai toh harr bar hona chaiye
 
         //accees tokken ko database m store nahi karate hai
-        return {accessToken ,refershToken};
+        return { accessToken, refershToken };
     } catch (error) {
-        throw new apiError(500 , "something went wrong while generating tokkens");
+        throw new apiError(500, "something went wrong while generating tokkens");
     }
 
 };
@@ -117,16 +117,41 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!user) {
         throw new apiError(404, "user does not exist");
     }
-    const isPasswordVaild  = await user.isPasswordCorrect(password);
-    if(!isPasswordVaild){
-        throw new apiError(404 , "Invaild credentials");
+    const isPasswordVaild = await user.isPasswordCorrect(password);
+    if (!isPasswordVaild) {
+        throw new apiError(404, "Invaild credentials");
     }
     //token system
+    const { accessToken, refershToken } = await generateAccessTokenAndRefershTokens(user._id);
 
+    //refresh tokken ka acces alag se bhi hai
+    const loggedInUser = await User.findById(user._id).select("-password -refreshtoken");
+    //select is user for not obtaining the field we don't want
 
+    //by default cookie ko koi bhi modify kar sakta hai forntend pe
 
+    const options = {
+        httpOnly: true,
+        secure: true //only modify by server
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refershToken", refershToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser, accessToken,
+                refershToken
+            },
+            "user logged in successfully"
+        )
+    );
 }
 );
+
 
 
 export {
