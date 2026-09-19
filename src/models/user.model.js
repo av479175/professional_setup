@@ -90,7 +90,7 @@ userSchema.methods.generateRefershToken = function () {
     return jwt.sign({
         _id: this._id,
     },
-        process.env.REFRESH_TOKEN_SECERT,
+        process.env.REFRESH_TOKEN_SECRET,
         {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }

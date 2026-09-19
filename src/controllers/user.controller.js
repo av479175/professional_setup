@@ -3,11 +3,13 @@ import { apiError } from "../utils/apiError.js";
 import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiRespone.js";
-
+import jwt from JsonWebTokenError;
+import { JsonWebTokenError } from "jsonwebtoken";
+import { use } from "react";
 //lets make a method for this
 const generateAccessTokenAndRefershTokens = async (userID) => {
     try {
-        const user = await User.findOne({ userID });
+        const user = await User.findById(userID);
         const accessToken = user.generateAccessToken();
         const refershToken = user.generateRefershToken();
 
@@ -132,7 +134,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true //only modify by server
+        secure: true, //only modify by server
+        path: "/"
     }
 
     return res
@@ -167,7 +170,9 @@ const logout = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true //only modify by server
+        secure: true,
+        expires: new Date(0),
+        path: "/"
     };
     return res.
         status(200)
@@ -175,12 +180,63 @@ const logout = asyncHandler(async (req, res) => {
         .clearCookie("refershToken", options)
         .json(
             new ApiResponse(200, {}, "User Logged off")
-    );
-})
+        );
+});
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refershToken || req.body.refershToken;
+    if (incomingRefreshToken) {
+        throw new apiError(401, "unauthorized request");
+    }
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.nextTick.REFRESH_TOKEN_SECRET
+        );
+    
+        const user = await User.findById(decodedToken?._id)
+    
+        if (!user) {
+            throw new apiError(401, "Invalid  Refresh tokken");
+        }
+    
+        if (incomingRefreshToken != user?.refershToken) {
+            throw new apiError(401, "Refresh tokken expired or used");
+        }
+    
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+    
+        const { accessToken, newrefershToken } = await generateAccessTokenAndRefershTokens(user._id);
+    
+        return res
+            .status(200)
+            .cookie("accesstoken", accessToken, options)
+            .cookie("refershToken", newrefershToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        accessToken, 
+                        refershToken: newrefershToken,
+                    },
+                    "Access token refreshed"
+                )
+            )
+    } catch (error) {
+        throw new apiError(401 , error?.message || 
+            "invalid refresh tokken"
+        )
+    }
+});
+
 
 
 export {
     registerUser,
     loginUser,
-    logout
+    logout,
+    refreshAccessToken
 }

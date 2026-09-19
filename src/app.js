@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-//IT IS MIDDLEWARE FILE
+//IT IS MIDDLEWARE 
 
 // Create the Express application.
 const app = express();
